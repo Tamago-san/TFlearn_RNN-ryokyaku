@@ -23,9 +23,8 @@ def seikei_data(df, GOD_step,n_prev):
 
 def create_dataset(df, train_size, GOD_step,n_prev):
     pos = round(len(df) * (train_size))#round→切り捨て
+    
     target_column=1
-    
-    
     trainX, trainY = seikei_data(df.iloc[0:pos], GOD_step,n_prev)
     testX, testY   = seikei_data(df.iloc[pos:], GOD_step,n_prev)
     return trainX, trainY, testX, testY
@@ -52,7 +51,7 @@ steps_of_history = 1
 steps_in_future = 1
 train_size=0.7
 GOD_step=1
-n_prev=10
+n_prev=5
 in_out_neurons = 1
 hidden_neurons = 300
 
