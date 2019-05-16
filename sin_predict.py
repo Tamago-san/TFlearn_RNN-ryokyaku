@@ -6,34 +6,38 @@ from keras.utils import np_utils
 from keras.models import Sequential
 from keras.layers import Dense, Activation
 from keras.layers import LSTM
-from keras.layers import RNN
+from keras.layers import SimpleRNN
 from keras.layers import GRU
+from keras.callbacks import EarlyStopping
 import matplotlib.pyplot as plt
 
 
 
-GOD_step=50
+GOD_step=0
 in_out_neurons = 1
 hidden_neurons = 10
-length_of_sequences = 100
+n_prev = 100
+main_batch = n_prev*10
 epoch=100
+test_size=0.2
 
 
-def _load_data(data, n_prev = 100):
+def _load_data(data, n_prev ):
     """
     data should be pd.DataFrame()
     """
+    len_data=len(data)-n_prev-GOD_step+1
+    X, Y = [], []
+    for i in range(len_data):
+        X.append(data.iloc[i:i+n_prev].as_matrix())
+        Y.append(data.iloc[i+n_prev+GOD_step-1].as_matrix())
+        
+    reX = np.array(X).reshape(len_data, n_prev, 1)
+    reY = np.array(Y).reshape(len_data, -1)
 
-    docX, docY = [], []
-    for i in range(len(data)-n_prev-GOD_step+1):
-        docX.append(data.iloc[i:i+n_prev].as_matrix())
-        docY.append(data.iloc[i+n_prev+GOD_step-1].as_matrix())
-    alsX = np.array(docX)
-    alsY = np.array(docY)
+    return reX, reY
 
-    return alsX, alsY
-
-def train_test_split(df, test_size=0.2, n_prev = 100):
+def train_test_split(df, test_size, n_prev):
     """
     This just splits data to training and testing parts
     """
@@ -59,20 +63,31 @@ df = df.rename(columns={2: 'Z'})
 #df[["sin_t"]].head(steps_per_cycle * 2).plot()
 
 
-(X_train, y_train), (X_test, y_test) = train_test_split(df[["X"]], n_prev =length_of_sequences)
+(X_train, y_train), (X_test, y_test) = train_test_split(df[["X"]], test_size,n_prev )
+#dataframe=pd.Dataframe(X_train,columns("x"))
 
+length_of_sequence = X_train.shape[1]
+in_out_neurons = 1
 
 model = Sequential()
-model.add(LSTM(hidden_neurons, batch_input_shape=(None, length_of_sequences, in_out_neurons), return_sequences=False))
+#model.add(LSTM(hidden_neurons, batch_input_shape=(None, length_of_sequence, in_out_neurons), return_sequences=False))
+#model.GRU(LSTM(hidden_neurons, batch_input_shape=(None, length_of_sequence, in_out_neurons), return_sequences=False))
+model.add(SimpleRNN(hidden_neurons,batch_input_shape=(None, length_of_sequence, in_out_neurons), return_sequences=False))
+
 model.add(Dense(in_out_neurons))
 model.add(Activation("linear"))
-model.compile(loss="mean_squared_error", optimizer="rmsprop")
-model.fit(X_train, y_train, batch_size=600, nb_epoch=epoch, validation_split=0.05)
+model.compile(loss="mean_squared_error", optimizer="adam")
+#early_stoppingをcallbacksで定義　→　validationの誤差値(val_loss)の変化が収束したと判定された場合に自動で終了
+#modeをauto　→　収束の判定を自動で行う．
+#patience　→　判定値からpatienceの値の分だけのepoch学習. 変化がなければ終了
+#patience=0　→　val_lossが上昇した瞬間終了
+early_stopping = EarlyStopping(monitor='val_loss', mode='auto', patience=20)
+model.fit(X_train, y_train, batch_size=main_batch, nb_epoch=epoch, validation_split=0.05)
 
 predicted = model.predict(X_test)
-dataf =  pd.DataFrame(predicted[:200])
-dataf.columns = ["predict"]
-dataf["input"] = y_test[:200]
+dataf =  pd.DataFrame(predicted[:])
+dataf.columns = ["OUTPUT_RNN"]
+dataf["OUTPUT_ORI"] = y_test[:]
 print(dataf)
 #plt.figure()
 dataf.plot()
