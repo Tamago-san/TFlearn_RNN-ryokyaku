@@ -9,6 +9,7 @@ from keras.layers import LSTM
 from keras.layers import SimpleRNN
 from keras.layers import GRU
 from keras.callbacks import EarlyStopping
+from keras.callbacks import CSVLogger
 import matplotlib.pyplot as plt
 
 
@@ -82,6 +83,7 @@ model.compile(loss="mean_squared_error", optimizer="adam")
 #patience　→　判定値からpatienceの値の分だけのepoch学習. 変化がなければ終了
 #patience=0　→　val_lossが上昇した瞬間終了
 early_stopping = EarlyStopping(monitor='val_loss', mode='auto', patience=20)
+callback=CSVLogger("./data_out/RNN_history.csv")
 model.fit(X_train, y_train, batch_size=main_batch, nb_epoch=epoch, validation_split=0.05)
 
 predicted = model.predict(X_test)
