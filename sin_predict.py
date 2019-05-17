@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 GOD_step=10
 in_out_neurons = 1
 hidden_neurons = 100
-n_prev = 10
+n_prev = 1
 main_batch = n_prev*10
 epoch=100
 test_size=0.2
