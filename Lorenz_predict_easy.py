@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 GOD_step=1#CSVファイルより固定
 inout_node = 1
 hidden_node = 100
-epoch=100 #学習epoch数
+epoch=20 #学習epoch数
 test_size=0.2
 timesteps= 1
 inout_node= 1
@@ -41,7 +41,7 @@ def create_dataset(df, test_size):
 
 
 #ファイルをpd形式で取ってきて成型
-df = pd.read_csv('./data/output_Runge_Lorenz3.csv',
+df = pd.read_csv('./data/Lorenz_x_20seaq.csv',
                     engine='python',
                 )
 df = df.rename(columns={0: 't'})
